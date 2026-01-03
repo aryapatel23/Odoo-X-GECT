@@ -59,8 +59,8 @@ const AppRoutes = () => {
           <Route path="emattendance" element={<Attendance />} />
           <Route path="emsalary" element={<Salary />} />
           <Route path="emcalendar" element={<Calendar />} />
-          <Route path="attendance" element={<AttendanceNew />} />
-          <Route path="register-face" element={<RegisterFace />} />
+          {/* <Route path="attendance" element={<AttendanceNew />} /> */}
+          {/* <Route path="register-face" element={<RegisterFace />} /> */}
           <Route path="emprofile/:id" element={<Emprofile />} />
           <Route path="emchat" element={<Chatbot />} />
           <Route path="emcontect" element={<Contect />} />

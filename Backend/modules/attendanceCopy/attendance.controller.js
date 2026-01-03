@@ -54,7 +54,7 @@ exports.markAttendance = async (req, res) => {
     if (!user) return res.status(404).json({ message: "❌ User not found" });
 
     // 2. Check location (Geofence)
-    const office = { lat: 23.0457, lng: 72.5647 }; // Set to user's reported current location
+    const office = { lat: 23.0457, lng: 72.5647 };
     const distance = (loc1, loc2) => {
       const R = 6371;
       const toRad = deg => (deg * Math.PI) / 180;
@@ -71,9 +71,10 @@ exports.markAttendance = async (req, res) => {
     const dist = distance(location, office);
     console.log(`📍 USER LOCATION: lat: ${location.lat}, lng: ${location.lng}`);
     console.log(`🏢 OFFICE LOCATION: lat: ${office.lat}, lng: ${office.lng}`);
-    console.log("📏 Distance calculated:", dist.toFixed(2), "km");
+    console.log("📏 Distance calculated:", dist.toFixed(4), "km");
 
     if (dist > 3) {
+      console.log(`⛔ Geofence Failure: User is ${dist.toFixed(4)}km away.`);
       return res.status(403).json({
         message: `⛔ Not at office location! You are ${dist.toFixed(2)}km away. Your location: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
       });
@@ -96,33 +97,8 @@ exports.markAttendance = async (req, res) => {
         return res.status(400).json({ message: "⚠️ You have already checked in today!" });
       }
 
-      // ✅ FACE VERIFICATION (Euclidean Distance)
-      if (!descriptor || !user.faceDescriptor) {
-        if (!user.faceDescriptor) return res.status(400).json({ message: "❌ Face not registered. Please register face first." });
-        return res.status(400).json({ message: "❌ Face data missing in request." });
-      }
+      // FACE VERIFICATION BYPASSED AS REQUESTED
 
-      const storedDescriptor = Object.values(user.faceDescriptor);
-      const inputDescriptor = Object.values(descriptor);
-
-      console.log(`🔍 Comparing descriptors for ${user.username}. Stored: ${storedDescriptor.length}, Input: ${inputDescriptor.length}`);
-
-      const euclideanDistance = (desc1, desc2) => {
-        return Math.sqrt(
-          desc1.map((val, i) => val - desc2[i])
-            .reduce((sum, diff) => sum + diff * diff, 0)
-        );
-      };
-
-      const faceDist = euclideanDistance(storedDescriptor, inputDescriptor);
-      console.log("🤖 Face Distance Calculated:", faceDist.toFixed(4));
-
-      // Threshold (0.6 is standard, let's keep it but show the value on failure)
-      if (faceDist > 0.6) {
-        return res.status(403).json({
-          message: `⛔ Face verification failed! Match: ${(100 - faceDist * 100).toFixed(1)}%`
-        });
-      }
 
       // Time Validations
       const hours = istNow.getUTCHours();

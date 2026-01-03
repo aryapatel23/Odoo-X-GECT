@@ -102,12 +102,68 @@ const updateLeaveStatus = async (req, res) => {
       // Find user email if possible (by user_id)
       const user = await db.collection("users").findOne({ user_id: leave.user_id });
       if (user && user.email) {
-        const color = status === "Approved" ? "#28a745" : "#dc3545";
+        const isApproved = status === "Approved";
+        const statusColor = isApproved ? "#10b981" : "#ef4444";
+        const statusBg = isApproved ? "#ecfdf5" : "#fef2f2";
+
+        const htmlContent = `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; color: #1e293b;">
+            <div style="background-color: #4f46e5; padding: 24px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Circle Soft OdooX</h1>
+              <p style="color: #e0e7ff; margin: 4px 0 0 0; font-size: 14px;">Human Resources Management</p>
+            </div>
+            <div style="padding: 32px; background-color: #ffffff;">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-block; padding: 8px 16px; background-color: ${statusBg}; color: ${statusColor}; border-radius: 9999px; font-weight: bold; font-size: 14px; text-transform: uppercase; border: 1px solid ${statusColor}40;">
+                  ${status}
+                </div>
+              </div>
+              
+              <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                Hello <strong>${user.username}</strong>,<br><br>
+                Your leave request has been reviewed by the HR team and it has been <strong>${status.toLowerCase()}</strong>.
+              </p>
+              
+              <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 24px; border-left: 4px solid #4f46e5;">
+                <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #64748b; text-transform: uppercase;">Leave Details</h3>
+                <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 4px 0; color: #64748b; width: 120px;">Type:</td>
+                    <td style="padding: 4px 0; font-weight: 600;">${leave.leaveType}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 4px 0; color: #64748b;">Duration:</td>
+                    <td style="padding: 4px 0; font-weight: 600;">${new Date(leave.startDate).toLocaleDateString()} to ${new Date(leave.endDate).toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 4px 0; color: #64748b;">Your Reason:</td>
+                    <td style="padding: 4px 0; font-style: italic;">"${leave.reason || "N/A"}"</td>
+                  </tr>
+                </table>
+              </div>
+
+              ${adminComment ? `
+              <div style="background-color: ${statusBg}; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px dashed ${statusColor}80;">
+                <h4 style="margin: 0 0 8px 0; font-size: 13px; color: ${statusColor}; text-transform: uppercase;">HR Feedback</h4>
+                <p style="margin: 0; font-size: 14px; line-height: 1.5;">${adminComment}</p>
+              </div>
+              ` : ''}
+              
+              <p style="font-size: 14px; color: #64748b; margin-top: 32px; text-align: center;">
+                If you have any questions regarding this decision, please contact the HR department.
+              </p>
+            </div>
+            <div style="background-color: #f1f5f9; padding: 20px; text-align: center; border-t: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 12px; color: #94a3b8;">&copy; ${new Date().getFullYear()} Circle Soft OdooX. All rights reserved.</p>
+            </div>
+          </div>
+        `;
+
         await transporter.sendMail({
           from: `"HR System" <${process.env.SMTP_EMAIL}>`,
           to: user.email,
-          subject: `Leave Request ${status}`,
-          html: `<h2 style="color:${color}">Your leave has been ${status}</h2><p>Reason: ${leave.reason}</p>`
+          subject: `Leave Request Update: ${status}`,
+          html: htmlContent
         });
       }
     }

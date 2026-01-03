@@ -132,7 +132,7 @@
 
 
 
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from 'react-redux';
 import jsPDF from 'jspdf'
 import { registerNotoSans } from '../NotoSansVariable.react'
@@ -150,47 +150,47 @@ import { Transition } from "@headlessui/react";
 const Salary = () => {
   const [openIndex, setOpenIndex] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState(""); 
-  const [data,setData]=useState([])
+  const [selectedYear, setSelectedYear] = useState("");
+  const [data, setData] = useState([])
 
   const user = useSelector((state) => state.auth.user);
 
-const user_id=user?.id
-console.log(user_id)
+  const user_id = user?.id
+  console.log(user_id)
 
-useEffect(() => {
-  const fetchSalary = async () => {
-    if (!selectedMonth || !selectedYear || !user_id) {
-      console.warn("Missing month/year/user_id");
-      return;
-    }
-
-    try {
-      const res = await fetch("http://localhost:5500/api/Generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          month: `${selectedYear}-${selectedMonth}`,
-          user_id,
-        }),
-      });
-
-      const result = await res.json();
-      if (result) {
-        setData([result]); // ✅ wrap as array
-      } else {
-        setData([]);
+  useEffect(() => {
+    const fetchSalary = async () => {
+      if (!selectedMonth || !selectedYear || !user_id) {
+        console.warn("Missing month/year/user_id");
+        return;
       }
-    } catch (err) {
-      console.error("Error fetching salary data:", err);
-    }
-  };
 
-  fetchSalary();
-}, [selectedMonth, selectedYear, user_id]);
-console.log("recieve data is",data)
+      try {
+        const res = await fetch("http://localhost:5500/api/Generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            month: `${selectedYear}-${selectedMonth}`,
+            user_id,
+          }),
+        });
+
+        const result = await res.json();
+        if (result) {
+          setData([result]); // ✅ wrap as array
+        } else {
+          setData([]);
+        }
+      } catch (err) {
+        console.error("Error fetching salary data:", err);
+      }
+    };
+
+    fetchSalary();
+  }, [selectedMonth, selectedYear, user_id]);
+  console.log("recieve data is", data)
 
   const toggleOpen = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -204,152 +204,152 @@ console.log("recieve data is",data)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
-const downloadPDF = (item) => {
-  const doc = new jsPDF();
-  registerNotoSans(doc);
-  doc.setFont("NotoSansVariable");
+  const downloadPDF = (item) => {
+    const doc = new jsPDF();
+    registerNotoSans(doc);
+    doc.setFont("NotoSansVariable");
 
-  const lineHeight = 8;
-  const rupee = String.fromCharCode(8377);
-  let y = 15;
+    const lineHeight = 8;
+    const rupee = String.fromCharCode(8377);
+    let y = 15;
 
-  // ===== Colors =====
-  const blue = "#0096FF";
-  const lightGray = "#f2f2f2";
-  const green = "#007F00";
+    // ===== Colors =====
+    const blue = "#0096FF";
+    const lightGray = "#f2f2f2";
+    const green = "#007F00";
 
-  // ===== Header Bar =====
-  doc.setFillColor(blue);
-  doc.setTextColor(255, 255, 255);
-  doc.rect(0, 0, 210, 15, "F");
-  doc.setFontSize(24);
-  doc.text("DayFlow", 105, 10, { align: "center" });
+    // ===== Header Bar =====
+    doc.setFillColor(blue);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(0, 0, 210, 15, "F");
+    doc.setFontSize(24);
+    doc.text("DayFlow", 105, 10, { align: "center" });
 
-  y = 24;
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(16);
-  doc.text(`Pay Slip - ${item.month}`, 105, y, { align: 'center' });
+    y = 24;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.text(`Pay Slip - ${item.month}`, 105, y, { align: 'center' });
 
-  y += lineHeight;
-  doc.setFontSize(14);
-
-
-  y += 2 * lineHeight;
-
-  // ===== Employee Info =====
-  doc.setFillColor(lightGray);
-  doc.rect(10, y - 6, 190, 8, "F");
-  doc.setFontSize(12);
-  doc.setTextColor(0, 0, 0);
-  doc.text("Employee Details:", 12, y);
-
-  y += lineHeight;
-  doc.text(`Employee ID: ${item.employee_id}`, 10, y);
-  doc.text(`Generated On: ${item.generated_on}`, 130, y);
-
-  y += lineHeight;
-  doc.text(`Name: ${item.employee_name}`, 10, y);
-  doc.text(`Month: ${item.month}`, 130, y);
-
-  y += 2 * lineHeight;
-
-  // ===== Attendance Summary =====
-  doc.setFillColor(lightGray);
-  doc.rect(10, y - 6, 190, 8, "F");
-  doc.text("Attendance Summary:", 12, y);
-  y += lineHeight;
-  doc.text(`• Total Working Days: ${item.attendance_summary.total_working_days}`, 10, y);
-  y += lineHeight;
-  doc.text(`• Present Days: ${item.attendance_summary.present_days}`, 10, y);
-  y += lineHeight;
-  doc.text(`• Absent Days: ${item.attendance_summary.absent_days}`, 10, y);
-  y += lineHeight;
-  doc.text(`• Paid Leaves: ${item.attendance_summary.paid_leave_allowance}`, 10, y);
-  y += lineHeight;
-  doc.text(`• Unpaid Leaves: ${item.attendance_summary.unpaid_leave_days}`, 10, y);
-
-  y += 2 * lineHeight;
-
-  // ===== Salary Breakdown Header =====
-  doc.setFillColor(lightGray);
-  doc.rect(10, y - 6, 190, 8, "F");
-  doc.text("Salary Breakdown:", 12, y);
-
-  y += lineHeight;
-
-  // ===== Table Headers =====
-  doc.rect(10, y, 190, lineHeight * 1.1); // table header background
-  doc.setFillColor("#e6e6e6");
-  doc.setDrawColor(200);
-  doc.setLineWidth(0.1);
-  doc.text("Earnings", 12, y + 6);
-  doc.text(`Amount (${rupee})`, 60, y + 6);
-  doc.text("Deductions", 112, y + 6);
-  doc.text(`Amount (${rupee})`, 160, y + 6);
-
-  y += lineHeight * 1.2;
-
-  const drawRow = (labelLeft, valLeft, labelRight, valRight) => {
-    doc.rect(10, y - 1, 95, lineHeight);  // Earnings column
-    doc.rect(105, y - 1, 95, lineHeight); // Deductions column
-
-    doc.text(labelLeft || "", 12, y + 5);
-    doc.text(valLeft || "", 60, y + 5);
-    doc.text(labelRight || "", 112, y + 5);
-    doc.text(valRight || "", 160, y + 5);
     y += lineHeight;
+    doc.setFontSize(14);
+
+
+    y += 2 * lineHeight;
+
+    // ===== Employee Info =====
+    doc.setFillColor(lightGray);
+    doc.rect(10, y - 6, 190, 8, "F");
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Employee Details:", 12, y);
+
+    y += lineHeight;
+    doc.text(`Employee ID: ${item.employee_id}`, 10, y);
+    doc.text(`Generated On: ${item.generated_on}`, 130, y);
+
+    y += lineHeight;
+    doc.text(`Name: ${item.employee_name}`, 10, y);
+    doc.text(`Month: ${item.month}`, 130, y);
+
+    y += 2 * lineHeight;
+
+    // ===== Attendance Summary =====
+    doc.setFillColor(lightGray);
+    doc.rect(10, y - 6, 190, 8, "F");
+    doc.text("Attendance Summary:", 12, y);
+    y += lineHeight;
+    doc.text(`• Total Working Days: ${item.attendance_summary.total_working_days}`, 10, y);
+    y += lineHeight;
+    doc.text(`• Present Days: ${item.attendance_summary.present_days}`, 10, y);
+    y += lineHeight;
+    doc.text(`• Absent Days: ${item.attendance_summary.absent_days}`, 10, y);
+    y += lineHeight;
+    doc.text(`• Paid Leaves: ${item.attendance_summary.paid_leave_allowance}`, 10, y);
+    y += lineHeight;
+    doc.text(`• Unpaid Leaves: ${item.attendance_summary.unpaid_leave_days}`, 10, y);
+
+    y += 2 * lineHeight;
+
+    // ===== Salary Breakdown Header =====
+    doc.setFillColor(lightGray);
+    doc.rect(10, y - 6, 190, 8, "F");
+    doc.text("Salary Breakdown:", 12, y);
+
+    y += lineHeight;
+
+    // ===== Table Headers =====
+    doc.rect(10, y, 190, lineHeight * 1.1); // table header background
+    doc.setFillColor("#e6e6e6");
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.1);
+    doc.text("Earnings", 12, y + 6);
+    doc.text(`Amount (${rupee})`, 60, y + 6);
+    doc.text("Deductions", 112, y + 6);
+    doc.text(`Amount (${rupee})`, 160, y + 6);
+
+    y += lineHeight * 1.2;
+
+    const drawRow = (labelLeft, valLeft, labelRight, valRight) => {
+      doc.rect(10, y - 1, 95, lineHeight);  // Earnings column
+      doc.rect(105, y - 1, 95, lineHeight); // Deductions column
+
+      doc.text(labelLeft || "", 12, y + 5);
+      doc.text(valLeft || "", 60, y + 5);
+      doc.text(labelRight || "", 112, y + 5);
+      doc.text(valRight || "", 160, y + 5);
+      y += lineHeight;
+    };
+
+    drawRow("Basic Salary", `${rupee}${item.basic || item.basic_salary || 0}`, "PF", `${rupee}${item.pf || item.deductions?.pf_amount || 0}`);
+    drawRow("HRA", `${rupee}${item.hra || 0}`, "Professional Tax", `${rupee}${item.professionaltax || item.deductions?.tax_amount || 0}`);
+    drawRow("DA", `${rupee}${item.da || 0}`, "Leave Deduction", `${rupee}${Number(item.deductions?.leave_deduction || 0).toFixed(2)}`);
+    drawRow("PB", `${rupee}${item.pb || 0}`, "Total Deduction", `${rupee}${Number(item.total_deductions || item.deductions?.total_deduction || 0).toFixed(2)}`);
+    drawRow("LTA", `${rupee}${item.lta || 0}`, "", "");
+    drawRow("Fixed", `${rupee}${item.fixed || 0}`, "", "");
+    drawRow("Gross Salary", `${rupee}${item.gross_salary || item.salary_breakdown?.gross_salary || 0}`, "", "");
+
+    // ===== Net Salary Highlight =====
+    y += lineHeight;
+    doc.setFillColor("#d9fdd3");
+    doc.rect(10, y, 190, lineHeight + 2, "F");
+    doc.setTextColor(0, 102, 0);
+    doc.text(`Net Salary: ${rupee}${Number(item.net_salary || item.salary_breakdown?.net_salary || 0).toFixed(2)}`, 12, y + 7);
+
+    doc.setTextColor(0, 0, 0);
+
+    y += 3 * lineHeight;
+
+    // ===== Footer Section =====
+    doc.setDrawColor(180);
+    doc.line(10, y, 200, y); // horizontal line
+    y += lineHeight;
+    doc.text("Prepared By", 20, y);
+    doc.text("Checked By", 90, y);
+    doc.text("Authorized By", 160, y);
+
+    y += lineHeight - 1;
+    doc.setFontSize(10);
+    // Prepared By
+    doc.text("Rajeev Sharma", 20, y);
+    doc.text("(HR Executive)", 20, y + 4);
+
+
+    // Checked By
+    doc.text("Meenal Kapoor", 90, y);
+    doc.text("(Payroll Manager)", 90, y + 4);
+
+    // Authorized By
+    doc.text("Anil Deshmukh", 160, y);
+    doc.text("(Head - Finance)", 160, y + 4);
+
+    // Save PDF
+    doc.save(`SalarySlip-${item.month}.pdf`);
   };
-
-  drawRow("Basic Salary", `${rupee}${item.basic || item.basic_salary || 0}`, "PF", `${rupee}${item.pf || item.deductions?.pf_amount || 0}`);
-  drawRow("HRA", `${rupee}${item.hra || 0}`, "Professional Tax", `${rupee}${item.professionaltax || item.deductions?.tax_amount || 0}`);
-  drawRow("DA", `${rupee}${item.da || 0}`, "Leave Deduction", `${rupee}${Number(item.deductions?.leave_deduction || 0).toFixed(2)}`);
-  drawRow("PB", `${rupee}${item.pb || 0}`, "Total Deduction", `${rupee}${Number(item.total_deductions || item.deductions?.total_deduction || 0).toFixed(2)}`);
-  drawRow("LTA", `${rupee}${item.lta || 0}`, "", "");
-  drawRow("Fixed", `${rupee}${item.fixed || 0}`, "", "");
-  drawRow("Gross Salary", `${rupee}${item.gross_salary || item.salary_breakdown?.gross_salary || 0}`, "", "");
-
-  // ===== Net Salary Highlight =====
-  y += lineHeight;
-  doc.setFillColor("#d9fdd3");
-  doc.rect(10, y, 190, lineHeight + 2, "F");
-  doc.setTextColor(0, 102, 0);
-  doc.text(`Net Salary: ${rupee}${Number(item.net_salary || item.salary_breakdown?.net_salary || 0).toFixed(2)}`, 12, y + 7);
- 
-  doc.setTextColor(0, 0, 0);
-
-  y += 3 * lineHeight;
-
-  // ===== Footer Section =====
-  doc.setDrawColor(180);
-  doc.line(10, y, 200, y); // horizontal line
-  y += lineHeight;
-  doc.text("Prepared By", 20, y);
-  doc.text("Checked By", 90, y);
-  doc.text("Authorized By", 160, y);
-
-    y += lineHeight-1;  
-doc.setFontSize(10);
-// Prepared By
-doc.text("Rajeev Sharma", 20, y);
-doc.text("(HR Executive)", 20, y + 4);
-
-
-// Checked By
-doc.text("Meenal Kapoor", 90, y);
-doc.text("(Payroll Manager)", 90, y + 4);
-
-// Authorized By
-doc.text("Anil Deshmukh", 160, y);
-doc.text("(Head - Finance)", 160, y + 4);
-
-  // Save PDF
-  doc.save(`SalarySlip-${item.month}.pdf`);
-};
 
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f5f7fa] to-[#e4ecf7]">
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 p-4 sm:p-6 overflow-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Salary</h1>
 
         {/* Filter Section */}
@@ -380,7 +380,7 @@ doc.text("(Head - Finance)", 160, y + 4);
             ))}
           </select>
         </div>
-        {console.log('Selected month and year is',selectedMonth,selectedYear)}
+        {console.log('Selected month and year is', selectedMonth, selectedYear)}
 
         {/* Salary Slips */}
         <div className="space-y-6">
@@ -391,39 +391,44 @@ doc.text("(Head - Finance)", 160, y + 4);
                 className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl transition hover:shadow-2xl border border-gray-200"
               >
                 <div
-                  className="flex justify-between items-center px-6 py-5 cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-5 cursor-pointer gap-4"
                   onClick={() => toggleOpen(index)}
                 >
                   <div className="flex items-center space-x-4">
                     <div className="bg-violet-100 p-3 rounded-xl shadow-sm">
                       <Banknote className="w-6 h-6 text-violet-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-lg font-semibold text-gray-900">
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-lg font-semibold text-gray-900 truncate">
                         {item.month}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 truncate">
                         Salary Statement
                       </span>
                     </div>
                   </div>
-              
-                  <div className="flex items-center space-x-4">
+
+                  <div className="flex items-center justify-between sm:justify-end space-x-4">
                     <span className="text-xl font-bold text-gray-800">
                       {(Number(item.salary_breakdown?.net_salary) || 0).toFixed(2)}
                     </span>
-                 <button
-  onClick={() => downloadPDF(item)}
-  className="bg-violet-600 text-white text-sm px-4 py-2 rounded-full shadow-md hover:bg-violet-700 transition flex items-center gap-2"
->
-  <Download className="w-4 h-4" />
-  Download
-</button>
-                    {openIndex === index ? (
-                      <ChevronUp className="w-5 h-5 text-gray-600" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-600" />
-                    )}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadPDF(item);
+                        }}
+                        className="bg-violet-600 text-white text-xs px-3 py-2 rounded-full shadow-md hover:bg-violet-700 transition flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span className="hidden xs:inline">Download</span>
+                      </button>
+                      {openIndex === index ? (
+                        <ChevronUp className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                      )}
+                    </div>
                   </div>
                 </div>
 

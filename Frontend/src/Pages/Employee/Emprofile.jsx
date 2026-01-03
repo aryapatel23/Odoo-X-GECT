@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { cacheUser } from '../../Redux/Slice';
+import { cacheUser, updateUserProfilePic } from '../../Redux/Slice';
 import {
   User, Mail, Phone, MapPin, Building2,
   Briefcase, CreditCard, Calendar, DollarSign,
@@ -38,8 +38,8 @@ const Emprofile = () => {
                     key={t}
                     onClick={() => setTab(t)}
                     className={`pb-4 px-2 text-sm font-medium transition-all relative ${tab === t
-                        ? "text-purple-600 border-b-2 border-purple-600"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 rounded-t-lg"
+                      ? "text-purple-600 border-b-2 border-purple-600"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-50/50 rounded-t-lg"
                       }`}
                   >
                     {t}
@@ -68,6 +68,7 @@ const Profile = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const usersdata = useSelector((state) => state.auth.usersdata);
+  const loggedInUser = useSelector((state) => state.auth.user);
   const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
@@ -82,6 +83,11 @@ const Profile = () => {
           const data = await response.json();
           setEmployee(data.user);
           dispatch(cacheUser({ id, userData: data.user }));
+
+          // ✅ If this is the logged-in user, sync their profile picture to the sidebar
+          if (loggedInUser && data.user.user_id === loggedInUser.id) {
+            dispatch(updateUserProfilePic(data.user.profilePic));
+          }
         } catch (error) {
           console.error("Error fetching employees:", error);
         }
@@ -103,11 +109,17 @@ const Profile = () => {
       {/* Avatar & Name */}
       <div className="text-center">
         <div className="relative w-28 h-28 mx-auto mb-4 group">
-          <img
-            src={employee.profilePic || "https://i.pravatar.cc/150?img=12"}
-            alt="Employee"
-            className="w-full h-full rounded-full object-cover border-4 border-purple-50 shadow-md"
-          />
+          {employee.profilePic ? (
+            <img
+              src={employee.profilePic}
+              alt="Employee"
+              className="w-full h-full rounded-full object-cover border-4 border-purple-50 shadow-md"
+            />
+          ) : (
+            <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-4xl border-4 border-purple-50 shadow-md">
+              {employee.username ? employee.username.charAt(0).toUpperCase() : 'E'}
+            </div>
+          )}
           <button className="absolute bottom-1 right-1 bg-purple-600 text-white p-2 rounded-full shadow-lg hover:bg-purple-700 transition opacity-0 group-hover:opacity-100">
             <Camera size={14} />
           </button>

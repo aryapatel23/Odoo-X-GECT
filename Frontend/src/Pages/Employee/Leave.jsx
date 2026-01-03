@@ -99,12 +99,12 @@ const Leave = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
             <div className="max-w-6xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:justify-between sm:flex-row sm:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">My Leave Requests</h1>
-                        <p className="text-gray-500 mt-1">Manage your leave applications and check status</p>
+                        <p className="text-gray-500 mt-1 text-sm">Manage your leave applications and check status</p>
                     </div>
                     <button
                         onClick={() => {
@@ -112,7 +112,7 @@ const Leave = () => {
                             setFormData({ startDate: "", endDate: "", leaveType: "Sick Leave", reason: "" });
                             setIsModalOpen(true);
                         }}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                        className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 active:scale-95"
                     >
                         <Plus size={20} /> Apply Leave
                     </button>

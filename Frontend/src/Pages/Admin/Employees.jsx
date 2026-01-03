@@ -1,6 +1,8 @@
-import { React, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE_URL } from "../../config.js";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Filter, Download } from 'lucide-react';
+import { Download, Filter, Plus, Search } from "lucide-react";
+
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
@@ -10,7 +12,7 @@ const Employees = () => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch("https://attendance-and-payroll-management.onrender.com/api/all");
+        const response = await fetch(`${API_BASE_URL}/api/all`);
         if (!response.ok) {
           throw new Error("Failed to fetch employees");
         }
@@ -68,17 +70,17 @@ const Employees = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-left">
+        {/* Table Container with Horizontal Scroll */}
+        <div className="w-full overflow-x-auto custom-scrollbar">
+          <table className="min-w-[800px] md:min-w-full text-sm text-left">
             <thead className="bg-gray-50 text-xs uppercase font-semibold text-text-sub border-b border-border">
               <tr>
-                <th className="px-6 py-4 w-16">No.</th>
-                <th className="px-6 py-4">Employee</th>
-                <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Role & Designation</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-4 md:px-6 py-4 w-12 md:w-16">No.</th>
+                <th className="px-4 md:px-6 py-4">Employee</th>
+                <th className="px-4 md:px-6 py-4">ID</th>
+                <th className="px-4 md:px-6 py-4">Role & Designation</th>
+                <th className="px-4 md:px-6 py-4">Status</th>
+                <th className="px-4 md:px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -89,33 +91,43 @@ const Employees = () => {
                     onClick={() => navigate(`/hremployees/profile/${emp.user_id}`)}
                     className="hover:bg-gray-50/50 transition-colors cursor-pointer group"
                   >
-                    <td className="px-6 py-4 text-text-sub font-mono text-xs">{String(index + 1).padStart(2, "0")}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 md:px-6 py-4 text-text-sub font-mono text-xs">{String(index + 1).padStart(2, "0")}</td>
+                    <td className="px-4 md:px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-lg border border-primary/10">
-                          {emp.username?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-text-main group-hover:text-primary transition-colors">{emp.username}</p>
-                          <p className="text-xs text-text-sub">{emp.email}</p>
+                        {emp.profilePic ? (
+                          <img
+                            src={emp.profilePic}
+                            alt={emp.username}
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border border-primary/10 shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-base md:text-lg border border-primary/10">
+                            {emp.username?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="max-w-[120px] md:max-w-none">
+                          <p className="font-semibold text-text-main group-hover:text-primary transition-colors truncate">{emp.username}</p>
+                          <p className="text-[10px] md:text-xs text-text-sub truncate">{emp.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-text-sub font-mono text-xs bg-gray-50/50 rounded-md w-fit px-2 py-1">{emp.user_id}</td>
-                    <td className="px-6 py-4">
-                      <p className="text-text-main font-medium">{emp.designation}</p>
-                      <p className="text-xs text-text-sub">{emp.role}</p>
+                    <td className="px-4 md:px-6 py-4">
+                      <span className="text-text-sub font-mono text-[10px] md:text-xs bg-gray-50/50 rounded-md px-2 py-1">{emp.user_id}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${emp.employmentType === 'Full Time' ? 'bg-green-100 text-green-700 ring-1 ring-green-600/20' :
-                          emp.employmentType === 'Part Time' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-600/20' :
-                            'bg-gray-100 text-gray-700 ring-1 ring-gray-600/20'
+                    <td className="px-4 md:px-6 py-4">
+                      <p className="text-text-main font-medium truncate">{emp.designation}</p>
+                      <p className="text-[10px] md:text-xs text-text-sub truncate">{emp.role}</p>
+                    </td>
+                    <td className="px-4 md:px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-0.5 md:px-2.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium whitespace-nowrap ${emp.employmentType === 'Full Time' ? 'bg-green-100 text-green-700 ring-1 ring-green-600/20' :
+                        emp.employmentType === 'Part Time' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-600/20' :
+                          'bg-gray-100 text-gray-700 ring-1 ring-gray-600/20'
                         }`}>
                         {emp.employmentType || "Unknown"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-primary hover:text-primary-hover font-medium text-xs">View Profile</button>
+                    <td className="px-4 md:px-6 py-4 text-right">
+                      <button className="text-primary hover:text-primary-hover font-medium text-[10px] md:text-xs whitespace-nowrap transition-colors">View Profile</button>
                     </td>
                   </tr>
                 ))

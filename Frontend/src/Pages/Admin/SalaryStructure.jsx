@@ -3,6 +3,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { Wallet, Edit2, Save, X } from "lucide-react";
 
+import { API_BASE_URL } from "../../config.js";
+
 const SalaryStructure = () => {
   const [structure, setStructure] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +15,7 @@ const SalaryStructure = () => {
   const [calculating, setCalculating] = useState(false);
 
   const token = localStorage.getItem("token");
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "https://attendance-and-payroll-management.onrender.com/api";
+  const apiBase = `${API_BASE_URL}/api`;
 
   // ✅ Fetch global salary structure
   useEffect(() => {

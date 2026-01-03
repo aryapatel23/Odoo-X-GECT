@@ -6,43 +6,140 @@ import {
   Calendar,
   Clock,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  MapPin,
+  CheckCircle
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setAttendanceStatus } from "../../Redux/Slice.jsx";
 
+import { API_BASE_URL } from "../../config.js";
+
 const Dashboard = () => {
   const [userId, setUserId] = useState("");
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState("loading");
+  const [message, setMessage] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [selectedRange, setSelectedRange] = useState("This Year");
 
   const handleBuddyPunching = () => navigate('/emattendance');
-  const handleManagerPOV = () => navigate('/emprofile/:id');
+  const handleManagerPOV = () => navigate(`/emprofile/${user?.id}`);
 
   const user = useSelector((state) => state.auth.user);
   const attendanceStatus = useSelector((state) => state.auth.status);
 
   useEffect(() => {
-    if (user?.id) setUserId(user.id);
+    if (user?.id || user?._id) setUserId(user.id || user._id);
   }, [user]);
 
   useEffect(() => {
     if (!userId) return;
-    const fetchTodayStatus = async () => {
-      try {
-        const res = await axios.get(`https://attendance-and-payroll-management.onrender.com/api/attendance/${userId}`);
-        setStatus(res.data.status);
-        dispatch(setAttendanceStatus(res.data.status));
-      } catch (err) {
-        console.error("Error fetching today's attendance", err);
-      }
-    };
     fetchTodayStatus();
   }, [userId]);
+
+  const fetchTodayStatus = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/attendance/${userId}`);
+      const data = res.data;
+
+      let currentStatus = "not-checked-in";
+      if (data.status && data.status !== "Absent") {
+        currentStatus = data.checkOutTime ? "completed" : "checked-in";
+      }
+
+      setStatus(currentStatus);
+      dispatch(setAttendanceStatus(currentStatus));
+    } catch (err) {
+      console.error("Error fetching today's attendance", err);
+      setStatus("not-checked-in");
+    }
+  };
+
+  const handleCheckIn = async () => {
+    setIsProcessing(true);
+    setMessage("📍 Verifying Location...");
+
+    if (!navigator.geolocation) {
+      setIsProcessing(false);
+      return setMessage("❌ Geolocation not supported");
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const res = await axios.post(`${API_BASE_URL}/api/mark-attendance`, {
+            id: userId,
+            username: user.username,
+            location: {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            },
+            type: "check-in"
+          });
+
+          setMessage("✅ Check-in successfully!");
+          setStatus("checked-in");
+          dispatch(setAttendanceStatus("checked-in"));
+          setTimeout(() => setMessage(""), 3000);
+        } catch (err) {
+          const errMsg = err.response?.data?.message || "❌ Check-in Failed";
+          setMessage(errMsg);
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+      (geoErr) => {
+        setMessage(`❌ Location Error: ${geoErr.message}`);
+        setIsProcessing(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
+  const handleCheckOut = async () => {
+    setIsProcessing(true);
+    setMessage("📍 Verifying Location...");
+
+    if (!navigator.geolocation) {
+      setIsProcessing(false);
+      return setMessage("❌ Geolocation not supported");
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const res = await axios.post(`${API_BASE_URL}/api/mark-attendance`, {
+            id: userId,
+            username: user.username,
+            location: {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            },
+            type: "check-out"
+          });
+
+          setMessage("👋 Check-out successfully!");
+          setStatus("completed");
+          dispatch(setAttendanceStatus("completed"));
+          setTimeout(() => setMessage(""), 3000);
+        } catch (err) {
+          const errMsg = err.response?.data?.message || "❌ Check-out Failed";
+          setMessage(errMsg);
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+      (geoErr) => {
+        setMessage(`❌ Location Error: ${geoErr.message}`);
+        setIsProcessing(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
 
   const yearData = [
     { name: "Jan", Attendance: 24 },
@@ -65,15 +162,15 @@ const Dashboard = () => {
   }));
 
   const getStatusBadge = () => {
-    const s = attendanceStatus || "Absent";
-    if (s === "Present" || s === "Late") return "bg-green-100 text-green-700 ring-green-600/20";
+    if (status === "checked-in") return "bg-green-100 text-green-700 ring-green-600/20";
+    if (status === "completed") return "bg-blue-100 text-blue-700 ring-blue-600/20";
     return "bg-red-100 text-red-700 ring-red-600/20";
   }
 
   const StatCard = ({ title, value, note, colorClass, icon: Icon }) => (
     <div className="bg-surface p-6 rounded-2xl shadow-sm border border-border flex flex-col hover:shadow-md transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-xl ${colorClass.replace('text-', 'bg-').replace('600', '100')} bg-opacity-20`}>
+        <div className={`p-3 rounded-xl ${colorClass.replace('text-', 'bg-').replace('600', '100').replace('primary', 'indigo')} bg-opacity-20`}>
           <Icon className={`w-6 h-6 ${colorClass}`} />
         </div>
         <span className="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">View</span>
@@ -96,18 +193,53 @@ const Dashboard = () => {
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
-          <button onClick={handleBuddyPunching} className="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-lg shadow-primary/20 transition-all active:scale-95">
-            + Quick Action
-          </button>
+          {status === "not-checked-in" && (
+            <button
+              onClick={handleCheckIn}
+              disabled={isProcessing}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2"
+            >
+              <MapPin size={18} />
+              {isProcessing ? "Verifying..." : "Bind In"}
+            </button>
+          )}
+
+          {status === "checked-in" && (
+            <button
+              onClick={handleCheckOut}
+              disabled={isProcessing}
+              className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-rose-200 transition-all active:scale-95 flex items-center gap-2"
+            >
+              <MapPin size={18} />
+              {isProcessing ? "Verifying..." : "Bind Out"}
+            </button>
+          )}
+
+          {status === "completed" && (
+            <div className="bg-gray-100 text-gray-500 px-6 py-2.5 rounded-xl text-sm font-bold border border-gray-200 flex items-center gap-2">
+              <CheckCircle size={18} />
+              Done for Today
+            </div>
+          )}
+
           <button onClick={handleManagerPOV} className="border border-border bg-white hover:bg-gray-50 text-text-main px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
             View Profile
           </button>
 
           <div className={`px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm ring-1 ${getStatusBadge()}`}>
-            {attendanceStatus || "Absent"}
+            {status === "checked-in" ? "Present" : status === "completed" ? "Signed Out" : "Absent"}
           </div>
         </div>
       </div>
+
+      {message && (
+        <div className={`p-4 rounded-xl text-sm font-bold animate-in slide-in-from-top-2 duration-300 ${message.includes("❌") ? "bg-red-50 text-red-700 border border-red-100" :
+            message.includes("✅") || message.includes("👋") ? "bg-green-50 text-green-700 border border-green-100" :
+              "bg-indigo-50 text-indigo-700 border border-indigo-100"
+          }`}>
+          {message}
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

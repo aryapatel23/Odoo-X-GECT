@@ -13,19 +13,20 @@ import {
   NotepadText
 } from "lucide-react";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../Redux/Slice';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const user = useSelector((state) => state.auth.user);
 
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    dispatch(logoutUser());
     navigate("/");
   };
 
@@ -49,18 +50,24 @@ const Sidebar = () => {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-surface text-text-main border-r border-border shadow-2xl md:shadow-none z-50 transform transition-transform duration-300 ease-in-out flex flex-col
+        className={`fixed md:sticky top-0 left-0 h-full w-72 bg-surface text-text-main border-r border-border shadow-2xl md:shadow-none z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden
         ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         {/* Profile Card */}
         <div className="p-6 shrink-0">
           <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-border/60 shadow-sm">
             <div className="relative shrink-0">
-              <img
-                src="https://i.pravatar.cc/100"
-                alt="Profile"
-                className="w-12 h-12 rounded-full ring-2 ring-white shadow-md object-cover"
-              />
+              {user?.profilePic ? (
+                <img
+                  src={user.profilePic}
+                  alt="Profile"
+                  className="w-12 h-12 rounded-full ring-2 ring-white shadow-md object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full ring-2 ring-white shadow-md bg-primary flex items-center justify-center text-white font-bold text-lg">
+                  {user?.username ? user.username.charAt(0).toUpperCase() : 'A'}
+                </div>
+              )}
               <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
             </div>
             <div className="overflow-hidden">

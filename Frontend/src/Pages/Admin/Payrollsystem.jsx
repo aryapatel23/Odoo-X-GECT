@@ -1,15 +1,17 @@
-import {React,useState,useEffect} from "react";
+import { React, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const PayrollSystem = () => {
-const [employees, setEmployees] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
- const navigate =useNavigate();
+import { API_BASE_URL } from "../../config.js";
 
-useEffect(() => {
+const PayrollSystem = () => {
+  const [employees, setEmployees] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch("https://attendance-and-payroll-management.onrender.com/api/all");
+        const response = await fetch(`${API_BASE_URL}/api/all`);
         if (!response.ok) {
           throw new Error("Failed to fetch employees");
         }
@@ -23,45 +25,45 @@ useEffect(() => {
   }, []);
 
   const filteredEmployees = employees.filter(emp =>
-  emp.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   return (
     <div className="min-h-screen flex flex-col">
-        <div className="flex-1 p-6 bg-gray-50">
-          <h2 className="text-2xl font-semibold mb-4">Employees List</h2>
+      <div className="flex-1 p-6 bg-gray-50">
+        <h2 className="text-2xl font-semibold mb-4">Employees List</h2>
 
-          {/* Search Bar */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search The Employee By id or Name"
-              value={searchTerm}
-              onChange={(e)=>setSearchTerm(e.target.value)}
-              className="w-full md:w-1/2 border border-gray-300 rounded px-4 py-2 focus:outline-none"
-            />
-          </div>
+        {/* Search Bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search The Employee By id or Name"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-1/2 border border-gray-300 rounded px-4 py-2 focus:outline-none"
+          />
+        </div>
 
-          {/* Table */}
-          <div className="bg-white rounded shadow overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100 text-gray-600">
-                <tr>
-                  <th className="text-left px-6 py-3">Sr.no</th>
-                  <th className="text-left px-6 py-3">Employee Id</th>
-                  <th className="text-left px-6 py-3">Employee Name</th>
-                  <th className="text-left px-6 py-3">Job Title</th>
-                  <th className="text-left px-6 py-3">Employment Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEmployees.length > 0 ? (
-             filteredEmployees.map((emp, index) => (
+        {/* Table */}
+        <div className="bg-white rounded shadow overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100 text-gray-600">
+              <tr>
+                <th className="text-left px-6 py-3">Sr.no</th>
+                <th className="text-left px-6 py-3">Employee Id</th>
+                <th className="text-left px-6 py-3">Employee Name</th>
+                <th className="text-left px-6 py-3">Designation</th>
+                <th className="text-left px-6 py-3">Employment Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredEmployees.length > 0 ? (
+                filteredEmployees.map((emp, index) => (
                   <tr
                     key={index}
                     className="border-t border-gray-200 hover:bg-gray-50"
-                    onClick={()=>navigate(`/payrollsystem/profile/${emp.user_id}`)}
+                    onClick={() => navigate(`/payrollsystem/profile/${emp.user_id}`)}
                   >
                     <td className="px-6 py-4">{String(index + 1).padStart(2, "0")}</td>
                     <td className="px-6 py-4">{emp.user_id}</td>
@@ -85,22 +87,22 @@ useEffect(() => {
                       </div>
                       <span>{emp.username}</span>
                     </td>
-                    <td className="px-6 py-4">{emp.employee_role}</td>
+                    <td className="px-6 py-4">{emp.designation}</td>
                     <td className="px-6 py-4">{emp.employmentType}</td>
                   </tr>
                 ))
-        ) : (
-            <tr>
-        <td colSpan="5" className="text-center text-gray-500 h-16">
-          No users found.
-        </td>
-      </tr>
-        )}
-      
-              </tbody>
-            </table>
-          </div>
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center text-gray-500 h-16">
+                    No users found.
+                  </td>
+                </tr>
+              )}
+
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
   );
 };

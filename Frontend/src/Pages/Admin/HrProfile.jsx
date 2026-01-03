@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { cacheUser } from '../../Redux/Slice';
+import { cacheUser, updateUserProfilePic } from '../../Redux/Slice';
 import {
   Mail, Phone, Globe, Calendar, DollarSign, Clock,
   Briefcase, User, Building, Edit3, X, Check, ArrowLeft
 } from "lucide-react";
+import { API_BASE_URL } from "../../config.js";
 
 const Hrprofile = () => {
   const [tab, setTab] = useState("Personal Info");
@@ -54,6 +55,7 @@ const Profile = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const usersdata = useSelector((state) => state.auth.usersdata);
+  const loggedInUser = useSelector((state) => state.auth.user);
   const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
@@ -62,11 +64,16 @@ const Profile = () => {
     } else {
       const FetchEmployee = async () => {
         try {
-          const response = await fetch(`https://attendance-and-payroll-management.onrender.com/api/users/${id}`);
+          const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
           if (!response.ok) throw new Error("Failed to fetch employees");
           const data = await response.json();
           setEmployee(data.user);
           dispatch(cacheUser({ id, userData: data.user }));
+
+          // ✅ If this is the logged-in user, sync their profile picture to the sidebar
+          if (loggedInUser && data.user.user_id === loggedInUser.id) {
+            dispatch(updateUserProfilePic(data.user.profilePic));
+          }
         } catch (error) {
           console.error("Error fetching employees:", error);
         }
@@ -85,9 +92,17 @@ const Profile = () => {
     <div className="bg-surface w-full lg:w-1/4 rounded-2xl shadow-sm border border-border p-6 h-fit space-y-6">
       {/* Profile Header */}
       <div className="flex flex-col items-center text-center pb-6 border-b border-border">
-        <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-sm">
-          <User size={40} />
-        </div>
+        {employee.profilePic ? (
+          <img
+            src={employee.profilePic}
+            alt="Profile"
+            className="w-24 h-24 rounded-full mb-4 shadow-sm object-cover border-4 border-primary/5"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-sm text-3xl font-bold uppercase">
+            {employee.username ? employee.username.charAt(0) : "A"}
+          </div>
+        )}
         <h3 className="text-xl font-bold text-text-main mb-1">{employee.username}</h3>
         <p className="text-sm text-text-sub font-medium">{employee.role || "Employee"}</p>
       </div>
@@ -290,7 +305,7 @@ function SalaryInfoTab() {
 
     const fetchSalaryInfo = async () => {
       try {
-        const response = await fetch(`https://attendance-and-payroll-management.onrender.com/api/usersalaryinfo/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/usersalaryinfo/${id}`);
 
         if (!response.ok) {
           setMessage("Salary data not found. Please contact Admin.");
@@ -371,7 +386,7 @@ const ProfileModal = ({ mode = "update", employeeId, defaultData = {}, onClose }
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const url = `https://attendance-and-payroll-management.onrender.com/api/update/${user.id}`;
+    const url = `${API_BASE_URL}/api/update/${user.id}`;
 
     try {
       const response = await fetch(url, {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
+import { API_BASE_URL } from "../../config.js";
 
 const Dashboard = () => {
   const [employees, setEmployees] = useState([]);
@@ -7,7 +8,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await fetch("https://attendance-and-payroll-management.onrender.com/api/all-attendance");
+        const response = await fetch(`${API_BASE_URL}/api/all-attendance`);
         const data = await response.json();
         setEmployees(data.attendance || []);
       } catch (error) {
@@ -84,7 +85,9 @@ const Dashboard = () => {
                 <tr>
                   <th className="px-6 py-4">Employee</th>
                   <th className="px-6 py-4">User ID</th>
-                  <th className="px-6 py-4">Date & Time</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Check In</th>
+                  <th className="px-6 py-4">Check Out</th>
                   <th className="px-6 py-4">Status</th>
                 </tr>
               </thead>
@@ -92,19 +95,23 @@ const Dashboard = () => {
                 {employees.map((emp, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-text-main">{emp.username}</td>
-                    <td className="px-6 py-4 text-text-sub">{emp.user_id}</td>
+                    <td className="px-6 py-4 text-text-sub font-mono text-xs">{emp.user_id}</td>
                     <td className="px-6 py-4 text-text-sub">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{new Date(emp.date).toLocaleDateString()}</span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(emp.time).toLocaleTimeString("en-US", {
-                            timeZone: "UTC",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })}
-                        </span>
-                      </div>
+                      {new Date(emp.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-indigo-600 font-semibold text-xs">
+                      {emp.checkInTime ? new Date(emp.checkInTime).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }) : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-rose-600 font-semibold text-xs">
+                      {emp.checkOutTime ? new Date(emp.checkOutTime).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      }) : "Still In"}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(emp.status)}`}>

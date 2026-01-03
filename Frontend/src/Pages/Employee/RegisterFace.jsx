@@ -16,7 +16,14 @@ const RegisterFace = () => {
 
     const loadModels = async () => {
         try {
-            const MODEL_URL = window.location.origin + "/models";
+            const MODEL_URL = "/models";
+            console.log("📦 Loading Models for Registration from:", MODEL_URL);
+
+            if (faceapi.tf) {
+                await faceapi.tf.setBackend('cpu');
+                await faceapi.tf.ready();
+            }
+
             await Promise.all([
                 faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
                 faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -25,7 +32,7 @@ const RegisterFace = () => {
             setModelsLoaded(true);
         } catch (err) {
             console.error(err);
-            setMessage(`❌ Load Error: ${err.message || "Models not found"}`);
+            setMessage(`❌ Load Error: ${err.message || "Models not found"}. Ensure they are in /public/models/`);
         }
     };
 

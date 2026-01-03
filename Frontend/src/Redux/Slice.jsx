@@ -41,6 +41,13 @@ const authSlice = createSlice({
       state.status = action.payload;
     },
 
+    updateUserProfilePic: (state, action) => {
+      if (state.user) {
+        state.user.profilePic = action.payload;
+        localStorage.setItem("user", JSON.stringify(state.user));
+      }
+    },
+
     cacheUser: (state, action) => {
       const { id, userData } = action.payload;
       state.usersdata[id] = userData;
@@ -57,6 +64,7 @@ export const {
   logoutUser,
   setUser,
   setAttendanceStatus,
+  updateUserProfilePic,
   cacheUser,
   clearUserCache,
 } = authSlice.actions;

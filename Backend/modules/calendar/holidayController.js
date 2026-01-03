@@ -27,3 +27,26 @@ exports.getHolidays = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.deleteHoliday = async (req, res) => {
+  try {
+    const db = getDB();
+    const { ObjectId } = require('mongodb');
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Holiday ID is required" });
+    }
+
+    const result = await db.collection('Holidays').deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Holiday deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Holiday not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting holiday:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -5,6 +5,8 @@ import { loginUser } from "../../Redux/Slice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { API_BASE_URL } from "../../config";
+
 const Login = () => {
   const [id, setId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ const Login = () => {
     const userData = { username, password, id };
 
     try {
-      const response = await fetch("https://attendance-and-payroll-management.onrender.com/api/login", {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),

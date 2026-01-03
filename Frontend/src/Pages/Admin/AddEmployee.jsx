@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { useState } from "react";
+import { API_BASE_URL } from "../../config.js";
 
 const AddEmployee = () => {
   const [formData, setFormData] = useState({
@@ -29,7 +28,7 @@ const AddEmployee = () => {
   const [calculating, setCalculating] = useState(false);
 
   const token = localStorage.getItem("token");
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "https://attendance-and-payroll-management.onrender.com/api";
+  const apiBase = `${API_BASE_URL}/api`;
 
   // ✅ Auto-calculate salary components when wage changes
   const handleWageChange = async (wage) => {
