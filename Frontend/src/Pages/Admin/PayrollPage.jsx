@@ -216,35 +216,49 @@ function InfoTab() {
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
               <p><span className="font-medium">Full Name:</span> {employee.employee_name}</p>
               <p><span className="font-medium">Employee ID:</span> {employee.employee_id}</p>
-              <p><span className="font-medium">Base Salary:</span> ₹{employee.base_salary}</p>
+              <p><span className="font-medium">Status:</span> <span className={`font-semibold ${employee.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>{employee.status || 'N/A'}</span></p>
               <p><span className="font-medium">Joining Date:</span> {employee.joining_date}</p>
             </div>
           </div>
 
-          {/* Bonus Info */}
+          {/* Salary Components - Allowances */}
           <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">💰 Bonus</h4>
+            <h4 className="text-md font-semibold mb-2 text-green-600">💰 Salary Components (Allowances)</h4>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Bonus:</span> ₹{employee.bonus}</p>
-              <p><span className="font-medium">HRA:</span> ₹{employee.hra}</p>
+              <p><span className="font-medium">Basic:</span> ₹{employee.basic || 0}</p>
+              <p><span className="font-medium">HRA:</span> ₹{employee.hra || 0}</p>
+              <p><span className="font-medium">DA (Dearness Allowance):</span> ₹{employee.da || 0}</p>
+              <p><span className="font-medium">PB (Performance Bonus):</span> ₹{employee.pb || 0}</p>
+              <p><span className="font-medium">LTA (Leave Travel Allow.):</span> ₹{employee.lta || 0}</p>
+              <p><span className="font-medium">Fixed Allowance:</span> ₹{employee.fixed || 0}</p>
             </div>
           </div>
 
-          {/* Deductions Info */}
+          {/* Deductions */}
           <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">➖ Deductions</h4>
+            <h4 className="text-md font-semibold mb-2 text-red-600">📉 Deductions</h4>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Tax Percent:</span> {employee.tax_percent}%</p>
-              <p><span className="font-medium">PF Percent:</span> {employee.pf_percent}%</p>
+              <p><span className="font-medium">PF (Amount):</span> ₹{employee.pf || 0}</p>
+              <p><span className="font-medium">Professional Tax:</span> ₹{employee.professionaltax || 0}</p>
+              <p><span className="font-medium">Total Deductions:</span> ₹{employee.total_deductions || 0}</p>
             </div>
           </div>
 
-          {/* Updates */}
+          {/* Salary Summary */}
+          <div>
+            <h4 className="text-md font-semibold mb-2 text-blue-600">📊 Salary Summary</h4>
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <p><span className="font-medium">Gross Salary:</span> <span className="text-blue-600 font-semibold">₹{employee.gross_salary || 0}</span></p>
+              <p><span className="font-medium">Net Salary:</span> <span className="text-green-700 font-semibold">₹{employee.net_salary || 0}</span></p>
+            </div>
+          </div>
+
+          {/* Update Info */}
           <div>
             <h4 className="text-md font-semibold mb-2 text-indigo-600">🔄 Updates</h4>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
               <p><span className="font-medium">Updated By:</span> {employee.updated_by}</p>
-               <p><span className="font-medium">Last Update:</span> {(employee.last_update).split("T")[0]}</p>
+              <p><span className="font-medium">Last Update:</span> {(employee.last_update).split("T")[0]}</p>
             </div>
           </div>
 
@@ -293,11 +307,18 @@ const SalaryModal = ({ mode = "add", employeeId, defaultData = {}, onClose }) =>
   const [formData, setFormData] = useState({
     employee_id: "",
     employee_name: "",
-    base_salary: "",
+    basic: "",
     hra: "",
-    bonus: "",
-    tax_percent: "",
-    pf_percent: "",
+    da: "",
+    pb: "",
+    lta: "",
+    fixed: "",
+    pf: "",
+    professionaltax: "",
+    gross_salary: "",
+    net_salary: "",
+    total_deductions: "",
+    status: "active",
     joining_date: "",
     updated_by: user.username,
   });
@@ -352,26 +373,57 @@ const SalaryModal = ({ mode = "add", employeeId, defaultData = {}, onClose }) =>
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="bg-white max-w-2xl w-full rounded-xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white max-w-4xl w-full rounded-xl shadow-xl p-6 relative max-h-[90vh] overflow-y-auto">
         <button onClick={onClose} className="absolute top-3 right-4 text-lg text-gray-500 hover:text-red-600">✖</button>
 
         <h2 className="text-xl font-semibold mb-4 text-center">
           {mode === "add" ? "Add Salary Info" : "Update Salary Info"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-3 text-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           <div className="grid grid-cols-2 gap-3">
-            <input type="text" name="employee_id" value={formData.employee_id} onChange={handleChange} placeholder="Employee ID" disabled={mode === "update" || mode==="add"} className="border p-2 rounded" />
+            <input type="text" name="employee_id" value={formData.employee_id} onChange={handleChange} placeholder="Employee ID" disabled={mode === "update" || mode==="add"} className="border p-2 rounded bg-gray-100" />
             <input type="text" name="employee_name" value={formData.employee_name} onChange={handleChange} placeholder="Employee Name" className="border p-2 rounded" />
-            <input type="number" name="base_salary" value={formData.base_salary} onChange={handleChange} placeholder="Base Salary" className="border p-2 rounded" />
-            <input type="number" name="hra" value={formData.hra} onChange={handleChange} placeholder="HRA" className="border p-2 rounded" />
-            <input type="number" name="bonus" value={formData.bonus} onChange={handleChange} placeholder="Bonus" className="border p-2 rounded" />
-            <input type="number" name="tax_percent" value={formData.tax_percent} onChange={handleChange} placeholder="Tax %" className="border p-2 rounded" />
-            <input type="number" name="pf_percent" value={formData.pf_percent} onChange={handleChange} placeholder="PF %" className="border p-2 rounded" />
             <input type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} placeholder="Joining Date" className="border p-2 rounded" />
-            <input type="text" name="updated_by" value={formData.updated_by} onChange={handleChange} placeholder="updated_by" disabled={mode === "update" || mode==="add"} className="border p-2 rounded" />
-            
+            <select name="status" value={formData.status} onChange={handleChange} className="border p-2 rounded">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
+
+          {/* Salary Components */}
+          <div className="border-t pt-3">
+            <h4 className="font-semibold text-green-600 mb-2">💰 Salary Components (Allowances)</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <input type="number" name="basic" value={formData.basic} onChange={handleChange} placeholder="Basic" className="border p-2 rounded" />
+              <input type="number" name="hra" value={formData.hra} onChange={handleChange} placeholder="HRA" className="border p-2 rounded" />
+              <input type="number" name="da" value={formData.da} onChange={handleChange} placeholder="DA (Dearness Allowance)" className="border p-2 rounded" />
+              <input type="number" name="pb" value={formData.pb} onChange={handleChange} placeholder="PB (Performance Bonus)" className="border p-2 rounded" />
+              <input type="number" name="lta" value={formData.lta} onChange={handleChange} placeholder="LTA (Leave Travel Allow.)" className="border p-2 rounded" />
+              <input type="number" name="fixed" value={formData.fixed} onChange={handleChange} placeholder="Fixed Allowance" className="border p-2 rounded" />
+            </div>
+          </div>
+
+          {/* Deductions */}
+          <div className="border-t pt-3">
+            <h4 className="font-semibold text-red-600 mb-2">📉 Deductions</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <input type="number" name="pf" value={formData.pf} onChange={handleChange} placeholder="PF (Amount)" className="border p-2 rounded" />
+              <input type="number" name="professionaltax" value={formData.professionaltax} onChange={handleChange} placeholder="Professional Tax" className="border p-2 rounded" />
+              <input type="number" name="total_deductions" value={formData.total_deductions} onChange={handleChange} placeholder="Total Deductions" className="border p-2 rounded" />
+            </div>
+          </div>
+
+          {/* Salary Summary */}
+          <div className="border-t pt-3">
+            <h4 className="font-semibold text-blue-600 mb-2">📊 Salary Summary</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <input type="number" name="gross_salary" value={formData.gross_salary} onChange={handleChange} placeholder="Gross Salary" className="border p-2 rounded" />
+              <input type="number" name="net_salary" value={formData.net_salary} onChange={handleChange} placeholder="Net Salary" className="border p-2 rounded" />
+            </div>
+          </div>
+
+          <input type="text" name="updated_by" value={formData.updated_by} onChange={handleChange} placeholder="updated_by" disabled className="border p-2 rounded bg-gray-100 col-span-2" />
 
           <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
             {mode === "add" ? "Add Info" : "Update Info"}

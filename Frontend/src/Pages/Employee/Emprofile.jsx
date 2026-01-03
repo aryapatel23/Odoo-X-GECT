@@ -341,26 +341,40 @@ function SalaryInfoTab() {
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
               <p><span className="font-medium">Full Name:</span> {employee.employee_name}</p>
               <p><span className="font-medium">Employee ID:</span> {employee.employee_id}</p>
-              <p><span className="font-medium">Base Salary:</span> ₹{employee.base_salary}</p>
+              <p><span className="font-medium">Status:</span> <span className={`font-semibold ${employee.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>{employee.status || 'N/A'}</span></p>
               <p><span className="font-medium">Joining Date:</span> {employee.joining_date}</p>
             </div>
           </div>
 
-          {/* Bonus Info */}
+          {/* Salary Components - Allowances */}
           <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">💰 Bonus</h4>
+            <h4 className="text-md font-semibold mb-2 text-green-600">💰 Salary Components (Allowances)</h4>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Bonus:</span> ₹{employee.bonus}</p>
-              <p><span className="font-medium">HRA:</span> ₹{employee.hra}</p>
+              <p><span className="font-medium">Basic:</span> ₹{employee.basic || 0}</p>
+              <p><span className="font-medium">HRA:</span> ₹{employee.hra || 0}</p>
+              <p><span className="font-medium">DA (Dearness Allowance):</span> ₹{employee.da || 0}</p>
+              <p><span className="font-medium">PB (Performance Bonus):</span> ₹{employee.pb || 0}</p>
+              <p><span className="font-medium">LTA (Leave Travel Allow.):</span> ₹{employee.lta || 0}</p>
+              <p><span className="font-medium">Fixed Allowance:</span> ₹{employee.fixed || 0}</p>
             </div>
           </div>
 
           {/* Deductions Info */}
           <div>
-            <h4 className="text-md font-semibold mb-2 text-indigo-600">➖ Deductions</h4>
+            <h4 className="text-md font-semibold mb-2 text-red-600">📉 Deductions</h4>
             <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <p><span className="font-medium">Tax Percent:</span> {employee.tax_percent}%</p>
-              <p><span className="font-medium">PF Percent:</span> {employee.pf_percent}%</p>
+              <p><span className="font-medium">PF (Amount):</span> ₹{employee.pf || 0}</p>
+              <p><span className="font-medium">Professional Tax:</span> ₹{employee.professionaltax || 0}</p>
+              <p><span className="font-medium">Total Deductions:</span> ₹{employee.total_deductions || 0}</p>
+            </div>
+          </div>
+
+          {/* Salary Summary */}
+          <div>
+            <h4 className="text-md font-semibold mb-2 text-blue-600">📊 Salary Summary</h4>
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <p><span className="font-medium">Gross Salary:</span> <span className="text-blue-600 font-semibold">₹{employee.gross_salary || 0}</span></p>
+              <p><span className="font-medium">Net Salary:</span> <span className="text-green-700 font-semibold">₹{employee.net_salary || 0}</span></p>
             </div>
           </div>
 
