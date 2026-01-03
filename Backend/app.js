@@ -11,6 +11,7 @@ const calendar = require('./modules/calendar/holidayRoutes');
 const mailroutes = require('./modules/mail/mailroutes');
 const cloudinaryroutes = require('./modules/cloudinary/cloudinaryroutes');
 const leaveRoutes = require('./modules/leave/leaveRoutes');
+const salaryStructureRoutes = require('./modules/salaryStructure/salaryStructureRoutes');
 const app = express();
 
 // ✅ Configure CORS for React frontend
@@ -36,5 +37,6 @@ app.use('/api', payrollroutes);
 app.use('/api', calendar);
 app.use('/api', mailroutes);
 app.use('/api', cloudinaryroutes);
+app.use('/api', salaryStructureRoutes);
 
 module.exports = app;

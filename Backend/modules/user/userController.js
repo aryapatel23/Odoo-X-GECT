@@ -83,6 +83,8 @@ const addUser = async (req, res) => {
       email,
       role,
       salary,
+      wage,
+      salary_components,
       employmentType,
       attendanceType,
       emergencyContact,
@@ -94,6 +96,20 @@ const addUser = async (req, res) => {
     if (!name || !id || !email || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    // ✅ NEW: Wage and salary components validation
+    // Only require salary_components if wage is provided
+    if (wage && parseFloat(wage) > 0) {
+      if (!salary_components || typeof salary_components !== 'object' || Object.keys(salary_components).length === 0) {
+        console.error("Validation Error: Wage provided but salary_components missing or invalid", { wage, salary_components });
+        return res.status(400).json({ 
+          message: "Salary components not calculated. Please ensure wage is entered and preview appears." 
+        });
+      }
+    }
+    
+    // Ensure salary_components is always an object
+    const finalSalaryComponents = salary_components && typeof salary_components === 'object' ? salary_components : {};
 
     // ✅ Check for duplicate email or ID
     const existingUser = await db.collection("users").findOne({
@@ -120,7 +136,9 @@ const addUser = async (req, res) => {
       mobile,
       email,
       role,
-      salary,
+      salary: salary || null,
+      wage: wage ? parseFloat(wage) : null,
+      salary_components: finalSalaryComponents,
       employmentType,
       attendanceType,
       emergencyContact,
@@ -134,6 +152,75 @@ const addUser = async (req, res) => {
     // ✅ Send welcome mail
     const setPasswordLink = `${process.env.FRONTEND_URL}/${id}/set-password?token=${token}`;
 
+    let salaryBreakdownHTML = '';
+    if (salary_components && Object.keys(salary_components).length > 0) {
+      salaryBreakdownHTML = `
+        <h3 style="color: #2c3e50; margin-top: 20px;">💰 SALARY BREAKDOWN:</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+          <tr style="background-color: #e8f4f8;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Component</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong>Amount (₹)</strong></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">Monthly Wage</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong>${salary_components.totalGross || wage || 0}</strong></td>
+          </tr>
+          <tr style="background-color: #f0f0f0;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>ALLOWANCES:</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• Basic Salary</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.basic || 0}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• HRA</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.hra || 0}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• DA</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.da || 0}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• PB</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.pb || 0}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• LTA</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.lta || 0}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• Fixed</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">₹${salary_components.fixed || 0}</td>
+          </tr>
+          <tr style="background-color: #f0f0f0;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Gross Salary</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong>₹${salary_components.totalGross || 0}</strong></td>
+          </tr>
+          <tr style="background-color: #ffe8e8;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>DEDUCTIONS:</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• PF (12%)</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">-₹${Math.abs(salary_components.pf || 0)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">• Professional Tax</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">-₹${Math.abs(salary_components.professionaltax || 0)}</td>
+          </tr>
+          <tr style="background-color: #ffe8e8;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Deductions</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong>-₹${salary_components.totalDeductions || 0}</strong></td>
+          </tr>
+          <tr style="background-color: #e8f8e8;">
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>NET SALARY</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;"><strong style="color: green; font-size: 16px;">₹${salary_components.netSalary || 0}</strong></td>
+          </tr>
+        </table>
+      `;
+    }
+
     await transporter.sendMail({
       from: `"Payroll App" <${process.env.SMTP_EMAIL}>`,
       to: email,
@@ -142,27 +229,27 @@ const addUser = async (req, res) => {
         <p>Hello <strong>${name}</strong>,</p>
         <p>Your HR has created an account for you in the Payroll system.</p>
         <p>Click the link below to set your password (valid for 1 hour):</p>
-        <a href="${setPasswordLink}">${setPasswordLink}</a>
-        <p>Please review your details below:</p>
-        <ul>
+        <a href="${setPasswordLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Set Password</a>
+        <br><br>
+        <h3 style="color: #2c3e50;">📋 YOUR PERSONAL DETAILS:</h3>
+        <ul style="line-height: 1.8;">
           <li><strong>User ID:</strong> ${id}</li>
           <li><strong>Name:</strong> ${name}</li>
           <li><strong>Email:</strong> ${email}</li>
           <li><strong>Phone:</strong> ${mobile}</li>
           <li><strong>Designation:</strong> ${designation}</li>
-          <li><strong>Salary:</strong> ${salary}</li>
+          <li><strong>Employment Type:</strong> ${employmentType}</li>
+          <li><strong>Joining Date:</strong> ${joigningDate}</li>
           <li><strong>Bank Account:</strong> ${bankAccount}</li>
           <li><strong>IFSC:</strong> ${IFSC}</li>
-          <li><strong>Employment Type:</strong> ${employmentType}</li>
-          <li><strong>Attendance Type:</strong> ${attendanceType}</li>
           <li><strong>Emergency Contact:</strong> ${emergencyContact}</li>
           <li><strong>Emergency Contact Name:</strong> ${emergencyContactname}</li>
-          <li><strong>Joining Date:</strong> ${joigningDate}</li>
         </ul>
-        <br /><br />
-        <p>If any of these details are incorrect, please contact the HR team at ${process.env.HR_EMAIL}</p>
-        <p>Thank you!</p>
-        <p>Best regards,</p>
+        ${salaryBreakdownHTML}
+        <br><br>
+        <p style="color: #666;">If any of these details are incorrect, please contact the HR team at ${process.env.HR_EMAIL}</p>
+        <p style="color: #666;">Thank you for joining us!</p>
+        <p style="color: #666;">Best regards,<br>HR Team</p>
       `,
     });
 

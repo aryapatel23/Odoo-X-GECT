@@ -62,6 +62,7 @@ const Sidebar = () => {
               { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/hrhome' },
               { label: 'Employees', icon: <Users size={18} />, path: '/hremployees' },
               { label: 'Add Employee', icon: <UserPlus size={18} />, path: '/hraddemployee' },
+              { label: 'Salary Structure', icon: <Wallet size={18} />, path: '/hrsalarystructure' },
               { label: 'Payroll System', icon: <Wallet size={18} />, path: '/hrpayrollsystem' },
               { label: 'Calendar', icon: <Calendar size={18} />, path: '/hrcalendar' },
               { label: 'Profile', icon: <User size={18} />, path: `/hrprofile/${user?.id}` },
